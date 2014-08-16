@@ -1,0 +1,572 @@
+<?
+curl 'https://graph.facebook.com/me/games.plays?access_token=AAADGFxPGN4MBAHl2L4kC8HOY7gLF5RZAUGHPRMdx7PdDg4cBvVnYlpGKDzKIZBGrVatLinciZCd31OmjA0IGmEmch5EhJvWZAsF8VbzHzAOdcBU268ZAO'
+curl -F 'access_token=AAADGFxPGN4MBAHl2L4kC8HOY7gLF5RZAUGHPRMdx7PdDg4cBvVnYlpGKDzKIZBGrVatLinciZCd31OmjA0IGmEmch5EhJvWZAsF8VbzHzAOdcBU268ZAO' \
+     -F 'game=http://samples.ogp.me/163382137069945' \
+        'https://graph.facebook.com/me/games.plays'
+curl -X DELETE \
+     -F 'access_token=AAADGFxPGN4MBAHl2L4kC8HOY7gLF5RZAUGHPRMdx7PdDg4cBvVnYlpGKDzKIZBGrVatLinciZCd31OmjA0IGmEmch5EhJvWZAsF8VbzHzAOdcBU268ZAO' \
+        'https://graph.facebook.com/{'{id_from_create_call}'}'
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="http://www.facebook.com/2008/fbml">
+  <head>
+    <title>bOuNcY bAllZ</title>
+	 <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# game: http://ogp.me/ns/game#">
+  <meta property="fb:app_id"      content="217802418304899" /> 
+  <meta property="og:type"        content="game" /> 
+   <meta property="og:type"        content="game.achievement" /> 
+  <meta property="og:url"         content="https://www.bouncyballz.in/fbgame" /> 
+  <meta property="og:title"       content="bOuNcY bAllZ" /> 
+  <meta property="og:description" content="Save ballz from falling using a paddle .
+		  Have fun with 4 ballz !!" /> 
+  <meta property="og:image"       content="http://www.bouncyballz.in/images/ball2.gif" /> 
+    <link rel="stylesheet" type="text/css" href="style.css" />
+	<link rel="icon" type="image/png" href="../images/ball2.png">
+	<script src="../cssjs/soundmanager2-nodebug-jsmin.js"></script>
+    <script language="JavaScript">
+    //get info, process data, update screen objects
+        //instance vars
+		var lives;
+		var i;
+		var y ;
+		var lif;
+        var ball = new Array();
+		var gift = new Array();
+		var bomb ;
+		var bombdy = 4;
+		var bombx = null;
+		var bomby = null;
+		var gun ;
+		var gundy = -3;
+		var gunx = null;
+		var guny = null;
+		var soundurl = '../sounds/ball-pad.mp3';
+		var myWidth = 0;
+		var winWidth = 0;
+		var comment;
+        var paddle;
+        var score;
+		var ballPopSound = null;
+		var ballPopSound2 = null;
+		var ballPopSound3 = null;
+		var docX;
+		var giftx = new Array(null,null,null,null,null,null,null,null);
+		var gifty = new Array(null,null,null,null,null,null,null,null);
+		var level = 1;
+        //initial speeds
+        var dx = new Array(5,-4,4,-3);
+        var dy = new Array(-5,4,-4,3);
+		var fixeddy = new Array(-5,4,-4,3);
+        var currentScore = 0;
+        var timer;
+		var images = new Array()
+			images[0] = "../images/sad.png";
+			images[1] = "../images/happy.png";
+			images[2] = "../images/-200.png";
+			images[3] = "../images/+100.png";
+			
+        //set initial conditions for ball and paddle
+        var paddleLeft = 228;
+        var ballLeft = new Array(15+Math.floor(Math.random()*450),15+Math.floor(Math.random()*450),15+Math.floor(Math.random()*450),15+Math.floor(Math.random()*450));
+        var ballTop =  new Array(15+Math.floor(Math.random()*201),15+Math.floor(Math.random()*201),15+Math.floor(Math.random()*201),15+Math.floor(Math.random()*201));
+			soundManager.preferFlash = true;
+			soundManager.flashVersion = 9;
+			soundManager.url = '../cssjs/';
+			soundManager.useHighPerformance = true;
+			soundManager.debugMode = false; // disable debug mode
+			soundManager.defaultOptions.multiShot = true;
+
+			soundManager.onready = function() {
+				// soundManager is ready to use (create sounds and so on)
+				sound(soundurl);
+				soundgameover();
+				soundbonus();
+				}
+		
+        function init(){
+            //instantiate HTML object instance vars
+			for(var i=0;i<4;i++)
+				{	ball[i] = document.getElementById('ball'+(i+1));
+				}
+				for(var i=0;i<8;i++)
+				{	gift[i] = document.getElementById('gift'+(i+1));
+					giftappear(i);
+				}
+				bomb = document.getElementById('bomb');
+				bombappear();
+				//gunappear();
+				winWidth = winSize();
+				document.getElementById('playingArea').style.cursor = 'e-resize';
+				document.getElementById('gameover').style.display = 'none';
+				document.getElementById('start').style.display = 'none';
+				document.getElementById('instruction').style.display = 'none';
+				paddle = document.getElementById('paddle');
+				score = document.getElementById('score-bottom');
+				livesbottom = document.getElementById('lives-bottom');
+				levelbottom = document.getElementById('level-bottom');
+				
+				//register key listener with document object
+				document.onkeydown = keyListener;
+				//start the game loop
+			
+			start();
+        }
+        
+        function keyListener(e){
+            if(!e){
+                //for IE
+                e = window.event;
+            }
+            if(e.keyCode==37 && paddleLeft > 35){
+                //keyCode 37 is left arrow
+                paddleLeft -= 25;
+                paddle.style.left = paddleLeft + 'px';
+            }
+            if(e.keyCode==39 && paddleLeft < 455){
+                //keyCode 39 is right arrow
+                paddleLeft += 25;
+                paddle.style.left = paddleLeft + 'px';
+            }
+            //FYI - keyCode 38 is up arrow, keyCode 40 is down arrow
+        }
+		function move(e)
+		{
+			if (!e) e= event;
+				if (e.pageX == null)
+				{
+				// IE case
+					var d= (document.documentElement && 
+							document.documentElement.scrollLeft != null) ?
+							document.documentElement : document.body;
+							docX= e.clientX + d.scrollLeft;
+							//docY= e.clientY + d.scrollTop;
+							}
+				else
+				{ 
+				// all other browsers
+					docX= e.pageX;
+					//docY= e.pageY;
+				}
+				
+				var Xi = (winWidth-500)/2;
+				var Xf = (winWidth+500)/2;
+				if(docX>Xi+35 && docX < Xf-23)
+					{
+					paddleLeft = docX-Xi-7;
+					paddle.style.left = paddleLeft + 'px';
+					}
+				else if(docX>Xf-20)
+					{paddleLeft = 468;
+					paddle.style.left = paddleLeft + 'px';}
+				else if(docX<Xi+27)
+					{paddleLeft = 28;
+					paddle.style.left = paddleLeft + 'px';}
+
+		return false;
+		}
+
+		if (document.addEventListener)
+			{
+			document.addEventListener("mousemove",move, false);
+			}
+		else if (document.attachEvent)
+			{
+			document.attachEvent("onmousemove",move);
+			}
+
+        function start(){
+            //game loop
+			bombdy = 3 + level/2;
+			bomby = bomby + bombdy;
+			if(bomby < 460)
+				bomb.style.top = bomby;
+			else
+			{
+				
+				if(bombx > paddleLeft-32 && bombx < paddleLeft + 42)
+					{
+					currentScore = currentScore - 200;
+					document.images.negative.src = eval("images[2]");
+					setTimeout('document.images.negative.src = eval("images[0]");',1000);
+					
+					}
+				bombappear();
+			}
+			//gundy = -4 - level/4;
+			//guny = guny - gundy;
+			//if(guny > 5)
+			//	gun.style.top = guny;
+			/*else
+			{
+				
+				if(bombx > paddleLeft-32 && bombx < paddleLeft + 42)
+					{
+					currentScore = currentScore - 200;
+					document.images.negative.src = eval("Image1.src");
+					//document.images.negative.src = eval("Image2.src");
+					}
+				bombappear();
+			}*/
+			for (var i=0;i<4;i++)
+			{
+            detectCollisions(i);
+			render(i);
+			difficulty(i);
+			}
+            
+				//end conditions
+			
+				lif = calclives();
+				if(lif != 0){
+					//still in play - keep the loop going
+					timer = setTimeout('start()',50);
+					}
+				else{
+					gameOver();
+					}
+				
+        }
+        
+        function detectCollisions(i){
+            //just reflect the ball on a collision
+            //a more robust engine could change trajectory of ball based
+            //on where the ball hits the paddle
+			
+				if(collisionX(i))
+					{
+					dx[i] = dx[i] * -1;
+					//ballPopSound.play();
+					sound('../sounds/ball-wall.mp3');
+					}
+				if(collisionY(i))
+					{
+					if(ballLeft[i] > paddleLeft-42 && ballLeft[i] < paddleLeft - 17 && dx[i]>0 || ballLeft[i] > paddleLeft+3 && ballLeft[i] < paddleLeft + 28 && dx[i]<0)
+						dx[i] = dx[i] * -1;
+					dy[i] = dy[i] * -1;
+					sound('../sounds/ball-wall.mp3');
+					}
+				if (ballTop[i] > 469)
+					{
+					ball[i].style.display = 'none';
+					}
+				for(var j=0;j<=7;j++)
+				{
+					if (gift1.style.display != 'none')
+					{
+						if(collisiongift(i,j))
+						{
+							document.images.positive.src = eval("images[3]");
+							setTimeout('document.images.positive.src = eval("images[1]");',300);
+							dy[i] = dy[i] * -1;
+							giftappear(j);
+							currentScore += 100;
+							soundbonus();
+						}
+					}
+				}
+        }
+        
+        function collisionX(i){
+            //check left and right boundaries
+            if(ballLeft[i] < 0 && dx[i] < 0 || ballLeft[i] > 482 && dx[i] > 0)
+                return true;
+            return false;
+		}
+		function collisiongift(i,j){
+				if(ballLeft[i] > giftx[j]- 14 && ballLeft[i] < giftx[j] + 38 && ballTop[i] > gifty[j]-14 && ballTop[i] < gifty[j]+24)
+					return true;
+				return false;
+		}
+        
+        function collisionY(i){
+            //check if at top of playing area
+            if(ballTop[i] < 4)
+               return true;
+            //check to see if ball collided with paddle
+            if(ballTop[i] > 456){
+                if(ballLeft[i] > paddleLeft-42 && ballLeft[i] < paddleLeft + 28 && dy[i]>0)
+                    return true;
+            }
+            return false;
+		}
+        function render(i){
+            moveBall(i);
+            updateScore();
+        }
+        
+        function moveBall(i){
+			if(ballTop[i] < 469 )
+			{
+            ballLeft[i] += dx[i];
+            ballTop[i] += dy[i];
+				ball[i].style.left = ballLeft[i];
+				ball[i].style.top = ballTop[i];
+			}
+		}
+		function calclives(){
+			var m = 0;
+			for(var i=0;i<4;i++)
+			{
+				if (ballTop[i] > 468)
+					m++;
+			}
+			life = 2 - m;
+			return life;
+			}
+        function updateScore(){
+			lives = calclives();
+            currentScore += 0.5;
+			//if(currentScore / 500 == 0)
+			level = Math.floor(currentScore / 500) + 1;
+            //score.innerHTML = 'Score: ' + currentScore;
+			score.innerHTML = currentScore;
+			levelbottom.innerHTML = level;
+			livesbottom.innerHTML = lives;
+        }
+        
+        function difficulty(i){
+            //as the game progresses, increase magnitude of the vertical speed
+		//alert(k);
+					if(dy[i] > 0)
+						{
+							if(fixeddy[i]>0)
+								dy[i] = (fixeddy[i] + (level/3) +2-lives);
+							else
+								dy[i] = (-fixeddy[i] + (level/3) +2-lives);
+						}
+					else
+						{
+							if(fixeddy[i]>0)
+								dy[i] = (-fixeddy[i] +lives-2 - (level/3));
+							else
+								dy[i] = (fixeddy[i] +lives-2 - (level/3));
+						}
+		}
+		
+		function giftappear(j){
+			giftx[j] = 25+Math.floor(Math.random()*425);
+			gifty[j] = 25+Math.floor(Math.random()*250);
+				gift[j].style.display = 'block';
+				gift[j].style.left = giftx[j];
+				gift[j].style.top = gifty[j];
+		}
+		function bombappear(){
+			bombx = 25+Math.floor(Math.random()*450);
+			bomby = 40;
+				bomb.style.display = 'block';
+				
+				bomb.style.left = bombx;
+				bomb.style.top = bomby;
+		}
+		function gunappear(){
+			gunx = paddleLeft + 32;
+			guny = 450;
+				gun.style.display = 'block';
+				gun.style.left = bombx;
+				gun.style.top = bomby;
+		}
+        function sound(){
+			ballPopSound = soundManager.createSound({
+			id: 'ballPopSound',
+			url: soundurl,
+			volume: 200,
+			multiShot: true,
+			autoLoad: true
+			});
+			return ballPopSound.play();
+		}
+		
+		function soundgameover(){
+			ballPopSound2 = soundManager.createSound({
+			id: 'ballPopSound2',
+			url: '../sounds/gameover.mp3' ,
+			volume: 200,
+			multiShot: true,
+			autoLoad: true
+		});
+			return ballPopSound2.play();
+		}
+		
+		function soundbonus(){
+			ballPopSound3 = soundManager.createSound({
+			id: 'ballPopSound3',
+			url: '../sounds/s2.mp3' ,
+			volume: 200,
+			multiShot: true,
+			autoLoad: true
+		});
+			return ballPopSound3.play();
+		}
+		
+		function winSize() {
+			if( typeof( window.innerWidth ) == 'number' ) {
+				//Non-IE
+				myWidth = window.innerWidth;
+				//myHeight = window.innerHeight;
+			} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+				//IE 6+ in 'standards compliant mode'
+				myWidth = document.documentElement.clientWidth;
+				//myHeight = document.documentElement.clientHeight;
+			} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+				//IE 4 compatible
+				myWidth = document.body.clientWidth;
+				//myHeight = document.body.clientHeight;
+			}
+		return myWidth;
+}
+		
+        function gameOver(){
+			soundgameover();
+			if (level==1)	comment = '<p>Gamez Over Kiddo!!</p><br/>Your score was just '+currentScore+'!!';
+			else if (level==2) comment = '<p>Grow up mamaz boi !!</p><br/> You scored just '+currentScore+'!!';
+			else if (level==3) comment = '<p>Wash your face faggot !!</p><br/> You scored just '+currentScore+'!!';
+			else if (level==4) comment = '<p>Stop praying start playing!!</p><br/> You scored just '+currentScore+'!!';
+			else if (level==5) comment = '<p>Mama gave you milk huh!!</p><br/> You scored just '+currentScore+'!!';
+			else if (level==6) comment = '<p>Shho Shheewt lol !!</p><br/> You scored just '+currentScore+'!!';
+			else if (level==7) comment = '<p>Nice try kiddo !!</p><br/> You scored just '+currentScore+'!!';
+			else if (level==8) comment = '<p>Good one boi !!</p><br/> You scored  '+currentScore+'!!';
+			else if (level==9) comment = '<p>You growing hard!!</p><br/> You scored  '+currentScore+'!!';
+			else if (level==10) comment = '<p>Champion ball saver !!</p><br/> You scored  '+currentScore+'!!';
+			else if (level>10&&level<15) comment = '<p>You became pro!!</p><br/> You scored  '+currentScore+'!!';
+			else if (level>14&&level<20) comment = '<p>The champ is here!!</p><br/> You scored  '+currentScore+'!!'
+			else if (level>19) comment = '<p>You are GOD!!</p><br/> You scored  '+currentScore+'!!'
+            //end the game by clearing the timer, modifying the score label
+            clearTimeout(timer);
+            //score.innerHTML += "   Game Over";
+            //score.style.backgroundColor = 'rgb(128,0,0)';
+			document.getElementById('again').style.display = 'block';
+			document.getElementById('gameover').style.display = 'block';
+			document.getElementById("gameover").innerHTML= comment ;
+			document.getElementById('playingArea').style.cursor = 'auto';
+        }
+		function backagain(){
+        currentScore = 0;
+		level = 1;
+        timer = 0;
+        //set initial conditions for ball and paddle
+		//score.style.backgroundColor = 'rgb(32,128,64)';
+		paddle.style.left = 228;
+        paddleLeft = 228;
+        //initial speeds
+        dx = Array(5,-4,4,-3);
+        dy = Array(-5,4,-4,3);
+        //set initial conditions for ball and paddle
+        ballLeft = Array(15+Math.floor(Math.random()*450),15+Math.floor(Math.random()*450),15+Math.floor(Math.random()*450),15+Math.floor(Math.random()*450));
+        ballTop =  Array(15+Math.floor(Math.random()*201),15+Math.floor(Math.random()*201),15+Math.floor(Math.random()*201),15+Math.floor(Math.random()*201));
+		document.getElementById('again').style.display = 'none';
+		//document.getElementById('score').style.backgroundColor = 'rgb(32,128,64)';
+		//document.getElementById('start').style.display = 'block';
+		document.getElementById('gameover').style.display = 'none';
+		document.getElementById('again').style.display = 'none';
+		document.getElementById('ball1').style.display = 'block';
+		document.getElementById('ball2').style.display = 'block';
+		document.getElementById('ball3').style.display = 'block';
+		document.getElementById('ball4').style.display = 'block';
+		init();
+		}
+    </script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-27867198-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  </head>
+  <body>
+  <h1><img src="../images/title2.png" alt='bOuNcY bAllZ'></h1>
+  <div id="playingArea">
+		<div id="instruction">
+			<img src="../images/instruction.png" alt='sAVe YoUr bAllZ !!
+			uSe rIGhT & lEfT ArRoW kEYz tO MoVe pAdDlE !!'>
+		</div>
+		<div id="bomb">
+			<img src="../images/bomb.png" name="bomb">
+		</div>
+		<div id="gun">
+			<img src="../images/shoe.png">
+		</div>
+		<div id="gift1">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift2">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift3">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift4">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift5">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift6">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift7">
+			<img src="../images/brick.png">
+		</div>
+		<div id="gift8">
+			<img src="../images/brick.png">
+		</div>
+		<div id="ball1">
+			<img src="../images/ball2.png">
+		</div>
+		<div id="ball2">
+			<img src="../images/cricket-ball.png">
+		</div>
+		<div id="ball3">
+			<img src="../images/worldcup.png">
+		</div>
+		<div id="ball4">
+			<img src="../images/marble.gif">
+		</div>
+		<div id="paddle">
+			<img src="../images/paddle.png" id="paddlemove">
+		</div>
+		<div id="score">
+			<div id="scoretitle"><img src="../images/title1.png" alt='bOuNcY bAllZ' width="120px" align="center">
+			</div>
+			<div id="bonus">
+				<p id="top">Bonus</p>
+				<div id="positive">
+					<img src="../images/happy.png" name="positive">
+				</div>
+				<div id="negative" name="negative">
+					<img src="../images/sad.png" name="negative">
+				</div>
+				<p id="bonus-bottom"><br></p>
+			</div>
+			<div id="score-score">
+				<p id="top">Score</p>
+				<p id="score-bottom">0</p>
+			</div>
+			<div id="level">
+				<p id="top">Level</p>
+				<p id="level-bottom">1</p>
+			</div>
+			<div id="lives">
+				<p id="top">Lives</p>
+				<p id="lives-bottom">2</p>
+			</div>
+		</div>
+		<div id = "start" onClick="return init()">
+			Start the game
+		</div>
+		<div id = "gameover"></div>
+		
+		<div id = "again" onClick="return backagain()">
+			Wanna try Again huh!!
+		</div>
+	</div>	
+  </body>
+</html>
